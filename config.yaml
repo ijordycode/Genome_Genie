@@ -1,0 +1,11 @@
+# config.yaml
+
+fastq_dir: "Fastq_files"
+reference_genome: "References"
+output_dir: "Outputs"
+
+# Sample sheet or individual sample list
+directories:
+  fastq_files_output: "Outputs/Fastq_files"
+
+
