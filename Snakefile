@@ -4,13 +4,17 @@ directories = config["directories"]
 
 rule all:
     input:
-        directories["fastq_files_output"]
+        directory(directories["fastq_files_output"]),
+        directory(directories["samplesheet"])
 
 
 rule make_output_dir:
-    output: directory(config["directories"]["fastq_files_output"])
+    output: directory(directories["fastq_files_output"])
     shell: "mkdir -p {output}"
 
+rule generate_samplesheet:
+    output: directory(directories["samplesheet"])
+    shell: "python Scripts/samplesheet_generator.py --ext {config[fastq_ext]} --read1 {config[read1]} --read2 {config[read2]}"
 
 """
 def get_sample_suffix(read: int):

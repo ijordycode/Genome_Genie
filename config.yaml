@@ -3,9 +3,13 @@
 fastq_dir: "Fastq_files"
 reference_genome: "References"
 output_dir: "Outputs"
+fastq_ext: ".fastq"
+read1: "_1"
+read2: "_2"
 
 # Sample sheet or individual sample list
 directories:
   fastq_files_output: "Outputs/Fastq_files"
+  samplesheet: "Outputs/samplesheet.csv"
 
 
