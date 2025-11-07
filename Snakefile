@@ -1,20 +1,50 @@
+import os
+import pandas as pd
+
+
 configfile: 'config.yaml'
 
-directories = config["directories"]
+directories = config['directories']
+samplesheet_path = directories['samplesheet']
+samples_df = pd.read_csv(samplesheet_path)
+sample_list = samples_df['samples'].tolist()
 
 rule all:
     input:
-        directory(directories["fastq_files_output"]),
-        directory(directories["samplesheet"])
+        expand(os.path.join(directories["fastq_files_output"], "{sample}" + config['read1'] + config["fastq_ext"]), sample=sample_list),
+        expand(os.path.join(directories["fastq_files_output"], "{sample}" + config['read2'] + config["fastq_ext"]), sample=sample_list),
+        expand(os.path.join(directories['sam_files_output'], "{sample}.sam"), sample=sample_list)
+
+rule trim_fastq_files:
+    input:
+        fastq1 = config["fastq_dir"] + "/{sample}" + config['read1'] + config["fastq_ext"],
+        fastq2 = config["fastq_dir"] + "/{sample}" + config['read2'] + config["fastq_ext"]
+    output:
+        filtered_qc_fastq1 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read1'] + config["fastq_ext"]),
+        filtered_qc_fastq2 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read2'] + config["fastq_ext"])
+    params:
+        None
+    message: "Running fastp filtering on {wildcards.sample}"
+    #log: directories["filterqc_summary_directory"] + "/logs/{sample}.log"
+    shell:
+        "fastp -i {input.fastq1} -I {input.fastq2} -o {output.filtered_qc_fastq1} -O {output.filtered_qc_fastq2}" # -h {output.html} -j {output.json} > {log} 2>&1
 
 
-rule make_output_dir:
-    output: directory(directories["fastq_files_output"])
-    shell: "mkdir -p {output}"
-
-rule generate_samplesheet:
-    output: directory(directories["samplesheet"])
-    shell: "python Scripts/samplesheet_generator.py --ext {config[fastq_ext]} --read1 {config[read1]} --read2 {config[read2]}"
+ rule mapping:
+    input:
+        fastq1 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read1'] + config["fastq_ext"]),
+        fastq2 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read2'] + config["fastq_ext"])
+    output:
+        sam = os.path.join(directories["sam_files_output"], "{sample}.sam"),
+        summary = os.path.join(directories["sam_files_output"], "{sample}_summary.txt"),
+        metrics = os.path.join(directories["sam_files_output"], "{sample}_metrics.tsv")
+    params:
+        genome_reference_index = directories["genome_reference_index"]
+    message: "Running Hisat2 alignment on {wildcards.sample}"
+    threads: config["cores"]
+    #log: directories["alignment_summary_directory"] + "/logs/{sample}.log"
+    shell:
+        "hisat2 -x {params.genome_reference_index} -p {threads} --new-summary --summary-file {output.summary} --met-file {output.metrics} -1 {input.fastq1} -2 {input.fastq2} -S {output.sam}" #" > {log} 2>&1"
 
 """
 def get_sample_suffix(read: int):

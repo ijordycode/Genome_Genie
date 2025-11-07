@@ -1,12 +1,13 @@
 FROM continuumio/miniconda3
 
 COPY env.yaml /BIP/env.yaml
-COPY Snakefile /BIP/Snakefile
-COPY config.yaml /BIP/config.yaml
 
 # Create and clean the conda environment
 RUN conda env create --name bio -f /BIP/env.yaml && \
     conda clean --all --yes
+
+COPY Snakefile /BIP/Snakefile
+COPY config.yaml /BIP/config.yaml
 
 # Activate environment when container starts
 SHELL ["conda", "run", "-n", "bio", "/bin/bash", "-c"]

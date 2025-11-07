@@ -1,15 +1,20 @@
 # config.yaml
 
-fastq_dir: "Fastq_files"
-reference_genome: "References"
-output_dir: "Outputs"
 fastq_ext: ".fastq"
 read1: "_1"
 read2: "_2"
 
+fastq_dir: "Fastq_files"
+resource_dir: "Resource"
+output_dir: "Outputs"
+cores: 2
+
 # Sample sheet or individual sample list
 directories:
-  fastq_files_output: "Outputs/Fastq_files"
+  fastq_files_output: "Outputs/fastq_files"
+  sam_files_output: "Outputs/sam_files"
+  bam_files_output: "Outputs/bam_files"
   samplesheet: "Outputs/samplesheet.csv"
+  genome_reference_index: "Resource/indexed_reference"
 
 
