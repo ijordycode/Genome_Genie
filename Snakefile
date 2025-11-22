@@ -9,11 +9,17 @@ samplesheet_path = directories['samplesheet']
 samples_df = pd.read_csv(samplesheet_path)
 sample_list = samples_df['samples'].tolist()
 
+if config.get("run_variant_calling", True):
+    include: "Subworkflow/variant_calling.smk"
+
 rule all:
     input:
         expand(os.path.join(directories["fastq_files_output"], "{sample}" + config['read1'] + config["fastq_ext"]), sample=sample_list),
         expand(os.path.join(directories["fastq_files_output"], "{sample}" + config['read2'] + config["fastq_ext"]), sample=sample_list),
-        expand(os.path.join(directories['sam_files_output'], "{sample}.sam"), sample=sample_list)
+        expand(os.path.join(directories['sam_files_output'], "{sample}.sam"), sample=sample_list),
+        expand( os.path.join(directories["bam_files_output"], "{sample}.bam.bai"), sample=sample_list),
+        expand(os.path.join(directories["vcf_files_output"], "{sample}.vcf"), sample=sample_list) if config.get("run_variant_calling") else [],
+        expand(os.path.join(directories["count_files_output"], "{sample}_counts.txt"), sample=sample_list) if config.get("run_gene_quantification") else []
 
 rule trim_fastq_files:
     input:
@@ -21,16 +27,18 @@ rule trim_fastq_files:
         fastq2 = config["fastq_dir"] + "/{sample}" + config['read2'] + config["fastq_ext"]
     output:
         filtered_qc_fastq1 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read1'] + config["fastq_ext"]),
-        filtered_qc_fastq2 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read2'] + config["fastq_ext"])
+        filtered_qc_fastq2 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read2'] + config["fastq_ext"]),
+        #json_qc_file = os.path.join(directories["fastq_files_output"], "fastp.json"),
+        #html_qc_file = os.path.join(directories["fastq_files_output"], "fastp.html")
     params:
         None
     message: "Running fastp filtering on {wildcards.sample}"
     #log: directories["filterqc_summary_directory"] + "/logs/{sample}.log"
     shell:
-        "fastp -i {input.fastq1} -I {input.fastq2} -o {output.filtered_qc_fastq1} -O {output.filtered_qc_fastq2}" # -h {output.html} -j {output.json} > {log} 2>&1
+        "fastp -i {input.fastq1} -I {input.fastq2} -o {output.filtered_qc_fastq1} -O {output.filtered_qc_fastq2} -h {output.html} -j {output.json}" # > {log} 2>&1
 
 
- rule mapping:
+rule mapping:
     input:
         fastq1 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read1'] + config["fastq_ext"]),
         fastq2 = os.path.join(directories["fastq_files_output"], "{sample}" + config['read2'] + config["fastq_ext"])
@@ -46,57 +54,11 @@ rule trim_fastq_files:
     shell:
         "hisat2 -x {params.genome_reference_index} -p {threads} --new-summary --summary-file {output.summary} --met-file {output.metrics} -1 {input.fastq1} -2 {input.fastq2} -S {output.sam}" #" > {log} 2>&1"
 
-"""
-def get_sample_suffix(read: int):
-    if read == 1:
-        return config["reads"][0]+'.fastq.gz'
-    elif read == 2:
-        return config["reads"][1]+'.fastq.gz'
-
-rule all:
-    input:
-        expand("{dir}/{sample}{read}_fastqc.html", sample=config["samples"], read=config["reads"], dir=directories["pre_filterqc_directory"]),
-        expand("{dir}/{sample}{read}_fastqc.html", sample=config["samples"], read=config["reads"], dir=directories["post_filterqc_directory"]),
-        expand("{dir}/{sample}.pdf", sample=config["samples"], dir=directories["pdf_summary_directory"])
-
-
-rule filterqc_fastq_files:
-    input:
-        fastq1 = directories["raw_fastq_files"] + "/{sample}" + get_sample_suffix(1),
-        fastq2 = directories["raw_fastq_files"] + "/{sample}" + get_sample_suffix(2)
-    output:
-        filtered_qc_fastq1 = directories["filterqc_fastq_directory"] + "/{sample}" + get_sample_suffix(1),
-        filtered_qc_fastq2 = directories["filterqc_fastq_directory"] + "/{sample}" + get_sample_suffix(2),
-        html = directories["filterqc_summary_directory"] + "/{sample}.html",
-        json = directories["filterqc_summary_directory"] + "/{sample}.json"
-    params:
-        extra_options = get_options(config["fastp"])
-    message: "Running fastp filtering on {wildcards.sample}"
-    log: directories["filterqc_summary_directory"] + "/logs/{sample}.log"
-    shell:
-        "fastp -i {input.fastq1} -I {input.fastq2} -o {output.filtered_qc_fastq1} -O {output.filtered_qc_fastq2} -h {output.html} -j {output.json} {params.extra_options} > {log} 2>&1"
-
- rule align_sample:
-    input:
-        fastq1 = directories["filterqc_fastq_directory"] + "/{sample}" + get_sample_suffix(1),
-        fastq2 = directories["filterqc_fastq_directory"] + "/{sample}" + get_sample_suffix(2)
-    output:
-        sam = directories["aligned_sam_directory"] + "/{sample}.sam",
-        summary = directories["alignment_summary_directory"] + "/{sample}_summary.txt",
-        metrics = directories["alignment_summary_directory"] + "/{sample}_metrics.tsv"
-    params:
-        genome_reference_index = directories["genome_reference_index"]
-    message: "Running Hisat2 alignment on {wildcards.sample}"
-    threads: config["cores"]
-    log: directories["alignment_summary_directory"] + "/logs/{sample}.log"
-    shell:
-        "hisat2 -x {params.genome_reference_index} -p {threads} --new-summary --summary-file {output.summary} --met-file {output.metrics} -1 {input.fastq1} -2 {input.fastq2} -S {output.sam} > {log} 2>&1"
-
 rule convert_sam_to_bam:
     input:
-        directories["aligned_sam_directory"] + "/{sample}.sam"
+        os.path.join(directories["sam_files_output"], "{sample}.sam")
     output:
-        directories["aligned_bam_directory"] + "/{sample}.bam"
+        os.path.join(directories["bam_files_output"], "{sample}.bam")
     message: "Converting {wildcards.sample}.sam to {wildcards.sample}.bam"
     threads: config["cores"]
     shell:
@@ -104,26 +66,15 @@ rule convert_sam_to_bam:
 
 rule index_bam:
     input:
-        directories["aligned_bam_directory"] + "/{sample}.bam"
+        os.path.join(directories["bam_files_output"], "{sample}.bam")
     output:
-        directories["aligned_bam_directory"] + "/{sample}.bam.bai"
+        os.path.join(directories["bam_files_output"], "{sample}.bam.bai")
     message: "Indexing {wildcards.sample}.bam"
     shell:
         "samtools index {input}"
 
-rule variant_calling:
-    input:
-        directories["aligned_bam_directory"] + "/{sample}.bam.bai",
-        bam = directories["aligned_bam_directory"] + "/{sample}.bam"
-    output:
-        directories["vcf_directory"] + "/{sample}.vcf"
-    params:
-        reference = directories["reference_genome_file"],
-        extra_options = get_options(config["freebayes"])
-    message: "Performing variant calling for {wildcards.sample}"
-    log: directories["variant_calling_summary_directory"] + "/logs/{sample}.log"
-    shell:
-        "freebayes -f {params.reference} -v {output} {params.extra_options} {input.bam} > {log} 2>&1"
+
+"""
 
 rule vcf_filtering:
     input:
