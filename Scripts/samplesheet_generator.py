@@ -24,7 +24,7 @@ def generate_samplesheet():
 
         samples.append(samplename) if samplename not in samples else None
 
-    df = pd.DataFrame({"samples": samples})
+    df = pd.DataFrame({"samples": samples, "condition":None})
     output_dir = os.path.join(cwd_directory, "Outputs/samplesheet.csv")
     df.to_csv(os.path.join(cwd_directory, "Outputs", "samplesheet.csv"), index=False)
 

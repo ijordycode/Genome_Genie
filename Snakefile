@@ -12,6 +12,9 @@ sample_list = samples_df['samples'].tolist()
 if config.get("run_variant_calling", True):
     include: "Subworkflow/variant_calling.smk"
 
+if config.get("run_gene_quantification", True):
+    include: "Subworkflow/gene_counts.smk"
+
 rule all:
     input:
         expand(os.path.join(directories["fastq_files_output"], "{sample}" + config['read1'] + config["fastq_ext"]), sample=sample_list),
