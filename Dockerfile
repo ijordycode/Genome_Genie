@@ -1,23 +1,27 @@
 FROM continuumio/miniconda3
 
-COPY env.yaml /BIP/env.yaml
+COPY src/base.yaml /BIP/base.yaml
+COPY src/rbio.yaml /BIP/rbio.yaml
 
 # Create and clean the conda environment
-RUN conda env create --name bio -f /BIP/env.yaml && \
+RUN conda env create --name seq -f /BIP/base.yaml && \
+    conda clean --all --yes
+
+RUN conda env create --name rbio -f /BIP/rbio.yaml && \
     conda clean --all --yes
 
 COPY Snakefile /BIP/Snakefile
 COPY config.yaml /BIP/config.yaml
 
 # Activate environment when container starts
-SHELL ["conda", "run", "-n", "bio", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-n", "sqe", "/bin/bash", "-c"]
 
 # Set working directory
 WORKDIR /BIP
 
 # Ensure conda environment is activated in interactive shells
 SHELL ["/bin/bash", "-c"]
-RUN echo "conda activate bio" >> ~/.bashrc
+RUN echo "conda activate seq" >> ~/.bashrc
 
 # Working CMD to keep container open
 CMD ["tail", "-f", "/dev/null"]

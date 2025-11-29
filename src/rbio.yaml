@@ -1,0 +1,16 @@
+name: rbio
+
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - python==3.13.*
+  - snakemake==9.13.2
+  - subread==2.1.1
+  - pandas
+  - r-base
+  - bioconductor-deseq2
+  - r-tidyverse
+  - r-rcolorbrewer
+  - r-ggrepel

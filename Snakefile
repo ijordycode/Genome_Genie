@@ -22,7 +22,8 @@ rule all:
         expand(os.path.join(directories['sam_files_output'], "{sample}.sam"), sample=sample_list),
         expand( os.path.join(directories["bam_files_output"], "{sample}.bam.bai"), sample=sample_list),
         expand(os.path.join(directories["vcf_files_output"], "{sample}.vcf"), sample=sample_list) if config.get("run_variant_calling") else [],
-        expand(os.path.join(directories["count_files_output"], "{sample}_counts.txt"), sample=sample_list) if config.get("run_gene_quantification") else []
+        expand(os.path.join(directories["count_files_output"], "{sample}_counts.txt"), sample=sample_list) if config.get("run_gene_quantification") else [],
+        expand(os.path.join(directories["count_files_output"], "deseq2_results.csv")) if config.get("run_deseq2") else []
 
 rule trim_fastq_files:
     input:
