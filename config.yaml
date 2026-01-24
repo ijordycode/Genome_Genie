@@ -9,20 +9,18 @@ run_variant_calling: false
 run_gene_qunatification: false
 run_deseq2: false
 
-fastq_dir: "Fastq_files"
-resource_dir: "Resource"
-output_dir: "Outputs"
+fastq_dir: "fastq_files"
+resource_dir: "resources"
+output_dir: "outputs"
+sam_files_output: "sam_files"
+bam_files_output: "bam_files"
+vcf_files_output: "vcf_files"
+count_files_output: "counts"
+samplesheet: "samplesheet.csv"
 
-# Sample sheet or individual sample list
 directories:
-  fastq_files_output: "Outputs/fastq_files"
-  sam_files_output: "Outputs/sam_files"
-  bam_files_output: "Outputs/bam_files"
-  vcf_files_output: "Outputs/vcf_files"
-  count_files_output: "Outputs/counts"
-  samplesheet: "Outputs/samplesheet.csv"
-  fasta_reference: "Resource/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
-  gtf_file: "Resource/Homo_sapiens.GRCh38.115.chr.gtf"
-  genome_reference_index: "Resource/indexed_reference/hg38_reference"
+  fasta_reference: "resources/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+  gtf_file: "resources/Homo_sapiens.GRCh38.115.chr.gtf"
+  genome_reference_index: "resources/indexed_reference/hg38_reference"
 
 

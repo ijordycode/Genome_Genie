@@ -14,7 +14,7 @@ COPY Snakefile /BIP/Snakefile
 COPY config.yaml /BIP/config.yaml
 
 # Activate environment when container starts
-SHELL ["conda", "run", "-n", "sqe", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-n", "seq", "/bin/bash", "-c"]
 
 # Set working directory
 WORKDIR /BIP
