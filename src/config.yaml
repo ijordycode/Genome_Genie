@@ -1,0 +1,15 @@
+bam_files_output: bam_files
+cores: 2
+count_files_output: counts
+fastq_dir: fastq_files
+output_dir: outputs
+resource_dir: resources
+sam_files_output: sam_files
+samplesheet: samplesheet.csv
+vcf_files_output: vcf_files
+
+reference_dirs:
+  fasta_reference: /BIP/resources/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+  genome_reference_index: /BIP/resources/indexed_reference/hg38_reference
+  gtf_file: /BIP/resources/Homo_sapiens.GRCh38.115.chr.gtf
+  snpeff_dir: /BIP/resources/GRCh38.115

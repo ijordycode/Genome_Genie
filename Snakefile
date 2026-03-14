@@ -3,7 +3,9 @@ import pandas as pd
 from datetime import datetime
 
 
-configfile: 'config.yaml'
+configfile: '/BIP/src/config.yaml'
+
+configfile: 'settings.yaml'
 
 ## Directories 
 reference_dirs = config['reference_dirs']
@@ -82,52 +84,4 @@ rule index_bam:
     message: "Indexing {wildcards.sample}.bam"
     shell:
         "samtools index {input}"
-
-
-"""
-
-rule vcf_filtering:
-    input:
-        directories["vcf_directory"] + "/{sample}.vcf"
-    output:
-        directories["filtered_vcf_directory"] + "/{sample}.vcf"
-    message: "Filtering {wildcards.sample}.vcf"
-    run:
-        parser = vcf_parser(str(input))
-        options = config["vcf_filtering_options"]
-        if "filter_chrom" in options and \
-            (filter_chrom := options["filter_chrom"]):
-            parser.slice_on_chrom(*filter_chrom)
-        if "filter_info" in options and \
-            (filter_info := options["filter_info"]):
-            for key, ops in filter_info.items():
-                for op in ("min", "max"):
-                    if ops[op] != None:
-                        parser.slice_on_info(key, op, ops[op])
-        parser.dump(str(output))
-
-rule effect_prediction:
-    input:
-        directories["filtered_vcf_directory"] + "/{sample}.vcf"
-    output:
-        data = directories["variant_effect_directory"] + "/{sample}.txt",
-        summary = directories["variant_effect_summary_directory"] + "/{sample}.html"
-    message: "Predicting variant effects for {wildcards.sample}"
-    threads: 1
-    log: directories["variant_effect_summary_directory"] + "/logs/{sample}.log"
-    shell:
-        "vep -i {input} -o {output.data} --format vcf --sf {output.summary} --database --symbol --tab --check_existing --fork {threads} > {log} 2>&1"
-
-rule generate_pdf_summary:
-    input:
-        directories["variant_effect_directory"] + "/{sample}.txt"
-    output:
-        directories["pdf_summary_directory"] + "/{sample}.pdf"
-    params:
-        summaries_database = directories["summaries_database"],
-        extra_options = get_options(config["vep_filtering_options"])
-    message: "Generating PDF summary for {wildcards.sample}."
-    log: directories["pdf_summary_directory"] + "/logs/{sample}.log"
-    shell:
-        "python3 helploid/generate_pdf.py -i {input} -o {output} -s {wildcards.sample} -db {params.summaries_database} {params.extra_options} > {log} 2>&1" """
         

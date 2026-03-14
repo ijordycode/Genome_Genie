@@ -1,0 +1,10 @@
+
+## Edit Fastq file naming and extensions
+fastq_ext: .fastq
+read1: _1
+read2: _2
+
+## Toggle what workflow to run
+run_deseq2: false
+run_gene_qunatification: false
+run_variant_calling: false

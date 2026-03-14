@@ -13,3 +13,5 @@ dependencies:
   - samtools==1.22.1
   - freebayes==1.3.10
   - subread==2.1.1
+  - bcftools==1.23
+  - snpeff==5.4.0c

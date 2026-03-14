@@ -13,13 +13,13 @@ args = parser.parse_args()
 cwd_directory = os.getcwd()
 
 ## Read config yaml file
-yaml_file = "config.yaml"
+yaml_file = "settings.yaml"
 with open(yaml_file, "r") as f:
     config = yaml.safe_load(f)
 
 ## Add timestamp to yaml file
 config['timestamp'] = datetime.now().strftime('output_%Y_%m_%d_%H_%M_%S')
-with open('config.yaml', 'w') as f:
+with open(yaml_file, 'w') as f:
     yaml.dump(config, f)
 
 ## Make timestamp directory
@@ -29,11 +29,14 @@ os.mkdir(full_output_path)
 def generate_samplesheet():
     samples = []
     for file in os.listdir(os.path.join(cwd_directory, "fastq_files")):
-        samplename = file.replace(config['fastq_ext'], "")
-        for read in [config['read1'], config['read2']]:
-            samplename = samplename.replace(read,"")
+        if config['fastq_ext'] not in file:
+            pass
+        else:
+            samplename = file.replace(config['fastq_ext'], "")
+            for read in [config['read1'], config['read2']]:
+                samplename = samplename.replace(read,"")
 
-        samples.append(samplename) if samplename not in samples else None
+            samples.append(samplename) if samplename not in samples else None
 
     df = pd.DataFrame({"samples": samples, "condition":None})
     df.to_csv(os.path.join(full_output_path, "samplesheet.csv"), index=False)
